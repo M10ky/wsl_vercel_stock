@@ -1,93 +1,159 @@
-// components/layout/LoginScreen.tsx
 'use client';
-
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { Mail, Lock, Eye, EyeOff, ShieldCheck, Database } from 'lucide-react';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [showPwd, setShowPwd]     = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Veuillez remplir tous les champs");
-      return;
-    }
+    if (!email.trim()) { toast.error('Veuillez saisir votre e-mail'); return; }
+    if (!password)      { toast.error('Veuillez saisir votre mot de passe'); return; }
 
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (error) {
-      toast.error(error.message === 'Invalid login credentials' 
-        ? "Email ou mot de passe incorrect" 
-        : error.message);
+      const msgs: Record<string, string> = {
+        'Invalid login credentials': 'E-mail ou mot de passe incorrect.',
+        'Email not confirmed':       'Veuillez confirmer votre e-mail avant de continuer.',
+        'Too many requests':         'Trop de tentatives. Réessayez dans quelques minutes.',
+      };
+      toast.error(msgs[error.message] ?? error.message);
     }
+    // Si succès : onAuthStateChange dans useStock prend le relais
     setLoading(false);
+  };
+
+  const handleForgot = async () => {
+    if (!email.trim()) { toast.info('Saisissez votre e-mail ci-dessus d\'abord'); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: typeof window !== 'undefined' ? window.location.origin : '',
+    });
+    if (error) toast.error(error.message);
+    else toast.success(`Lien envoyé à ${email.trim()}. Vérifiez vos spams.`);
   };
 
   return (
     <div className="login-page">
       <div className="login-card">
-        <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-            <span className="text-3xl">📦</span>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{
+            width: 64, height: 64,
+            background: 'linear-gradient(135deg,#00c9a7,#009e84)',
+            borderRadius: 16, display: 'inline-flex',
+            alignItems: 'center', justifyContent: 'center',
+            marginBottom: 14, boxShadow: '0 8px 24px rgba(0,201,167,.35)',
+          }}>
+            <span style={{ fontSize: 30 }}>📦</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Connecteo Stock</h1>
-          <p className="text-sm text-gray-500 mt-1">Gestion de Stock - Call Center</p>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>Connecteo Stock</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
+            Système de gestion des stocks — v5.0
+          </div>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleLogin}>
-          <div className="mb-4">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Adresse e-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="vous@connecteo.mg"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-teal-500"
-              required
-            />
+          {/* Email */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 5 }}>
+              Adresse e-mail professionnelle
+            </label>
+            <div style={{ position: 'relative' }}>
+              <Mail size={16} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="vous@connecteo.mg"
+                autoComplete="username"
+                style={{
+                  width: '100%', padding: '10px 11px 10px 36px',
+                  borderRadius: 9, border: '1.5px solid #e2e8f0',
+                  fontSize: 13, fontFamily: 'inherit', outline: 'none',
+                }}
+                onFocus={e => e.target.style.borderColor = '#00c9a7'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+              />
+            </div>
           </div>
 
-          <div className="mb-6">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Mot de passe</label>
-            <div className="relative">
+          {/* Password */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 5 }}>
+              Mot de passe
+            </label>
+            <div style={{ position: 'relative' }}>
+              <Lock size={16} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPwd ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-teal-500"
-                required
+                autoComplete="current-password"
+                style={{
+                  width: '100%', padding: '10px 40px 10px 36px',
+                  borderRadius: 9, border: '1.5px solid #e2e8f0',
+                  fontSize: 13, fontFamily: 'inherit', outline: 'none',
+                }}
+                onFocus={e => e.target.style.borderColor = '#00c9a7'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setShowPwd(v => !v)}
+                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px 6px' }}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
 
+          {/* Meta */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+            <button
+              type="button"
+              onClick={handleForgot}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#00c9a7', fontWeight: 600, fontFamily: 'inherit' }}
+            >
+              Mot de passe oublié ?
+            </button>
+          </div>
+
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-teal-500 to-teal-600 text-white py-3.5 rounded-xl font-semibold hover:brightness-105 transition disabled:opacity-70"
+            style={{
+              width: '100%', padding: 13,
+              background: 'linear-gradient(135deg,#00c9a7,#009e84)',
+              color: '#fff', border: 'none', borderRadius: 10,
+              fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit', opacity: loading ? .65 : 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
           >
-            {loading ? 'Connexion en cours...' : 'Se connecter'}
+            {loading ? 'Connexion en cours…' : '→ Se connecter'}
           </button>
         </form>
 
-        <div className="text-center text-xs text-gray-400 mt-8">
-          Connecteo © 2026 • Accès réservé
+        {/* Footer */}
+        <div style={{ marginTop: 22, textAlign: 'center', fontSize: 11, color: '#94a3b8' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 10 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <ShieldCheck size={11} style={{ color: '#00c9a7' }} /> JWT sécurisé
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Database size={11} style={{ color: '#00c9a7' }} /> RLS activé
+            </span>
+          </div>
+          Connecteo · <strong style={{ color: '#475569' }}>© 2026</strong> · Accès réservé
         </div>
       </div>
     </div>

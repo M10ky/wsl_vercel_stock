@@ -1,36 +1,30 @@
 'use client';
-
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useStock } from '@/hooks/useStock';
 import LoginScreen from '@/components/layout/LoginScreen';
 import AppLayout from '@/components/layout/AppLayout';
-import { useStock } from '@/hooks/useStock';
 
 export default function Home() {
-  const [session, setSession] = useState<any>(null);
   const { profile, loading } = useStock();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   if (loading) {
     return (
-      <div id="global-loader" className="flex flex-col items-center justify-center min-h-screen">
-        <div className="text-2xl font-bold text-white mb-4">Connecteo <span className="text-teal-400">Stock</span></div>
-        <div className="spinner"></div>
-        <p className="text-white/70 mt-4">Chargement...</p>
+      <div style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(15,23,42,.85)',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        zIndex: 2000,
+      }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 20 }}>
+          Connecteo <span style={{ color: '#00c9a7' }}>Stock</span>
+        </div>
+        <div className="spinner" />
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginTop: 14 }}>
+          Vérification de la session…
+        </div>
       </div>
     );
   }
 
-  return session && profile ? <AppLayout /> : <LoginScreen />;
+  return profile ? <AppLayout /> : <LoginScreen />;
 }

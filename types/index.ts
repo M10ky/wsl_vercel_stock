@@ -2,7 +2,7 @@
 export type Profile = {
   id: string;
   name: string;
-  role: string;
+  role: 'Administrateur' | 'Support IT' | 'Responsable Finance' | 'Utilisateur IT' | 'Utilisateur Finance';
   dept: 'IT' | 'Finance' | 'both';
   is_active: boolean;
   color?: string;
@@ -47,17 +47,20 @@ export type Demande = {
   motif: string;
   statut: 'En attente' | 'Validé' | 'Refusé';
   valideur?: string;
+  valideur_id?: string;
   dept: string;
   created_at?: string;
+  updated_at?: string;
 };
 
-export type ST = {
-  user: any;
-  profile: Profile | null;
-  produits: Product[];
-  mouvements: Mouvement[];
-  demandes: Demande[];
-  tab: string;
-  dateFrom: string | null;
-  dateTo: string | null;
+export type Parametre = {
+  id?: string;
+  cle: 'destinations' | 'categoriesIT' | 'categoriesFin';
+  valeur: string;
+};
+
+export type Params = {
+  destinations: string[];
+  categoriesIT: string[];
+  categoriesFin: string[];
 };

@@ -1,61 +1,63 @@
-// components/layout/Topbar.tsx
 'use client';
-
-import { Calendar, Filter } from 'lucide-react';
 import { useState } from 'react';
+import { Calendar } from 'lucide-react';
 
 interface TopbarProps {
   tab: string;
+  onFilter: (from: string, to: string) => void;
+  onClearFilter: () => void;
+  dateFrom: string;
+  dateTo: string;
 }
 
-export default function Topbar({ tab }: TopbarProps) {
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+const LABELS: Record<string, string> = {
+  dashboard:    'Tableau de Bord',
+  'stock-it':   'Inventaire IT',
+  'stock-fin':  'Inventaire Finance',
+  'mvt-it':     'Mouvements IT',
+  'mvt-fin':    'Mouvements Finance',
+  'dem-it':     'Demandes IT',
+  'dem-fin':    'Demandes Finance',
+  'alertes-it': 'Alertes IT',
+  'alertes-fin':'Alertes Finance',
+  historique:   'Historique Complet',
+  rapports:     'Rapports & Statistiques',
+  utilisateurs: 'Gestion des Utilisateurs',
+  params:       'Paramètres Système',
+};
 
-  const labels: Record<string, string> = {
-    dashboard: 'Tableau de Bord',
-    'stock-it': 'Inventaire IT',
-    'stock-fin': 'Inventaire Finance',
-    'mvt-it': 'Mouvements IT',
-    'mvt-fin': 'Mouvements Finance',
-    'dem-it': 'Demandes IT',
-    'dem-fin': 'Demandes Finance',
-    'alertes-it': 'Alertes IT',
-    'alertes-fin': 'Alertes Finance',
-    historique: 'Historique Complet',
-    rapports: 'Rapports & Statistiques',
-  };
+export default function Topbar({ tab, onFilter, onClearFilter, dateFrom, dateTo }: TopbarProps) {
+  const [from, setFrom] = useState(dateFrom);
+  const [to, setTo]     = useState(dateTo);
 
   return (
-    <div className="h-16 bg-white border-b flex items-center px-8 justify-between">
+    <div style={{ height: 54, background: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', padding: '0 22px', gap: 14, flexShrink: 0 }}>
       <div>
-        <h1 className="text-xl font-bold text-gray-900">{labels[tab] || tab}</h1>
-        <p className="text-sm text-gray-500">Connecteo Stock Management</p>
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{LABELS[tab] ?? tab}</div>
+        <div style={{ fontSize: 11, color: '#94a3b8' }}>Connecteo — Gestion des stocks</div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 bg-slate-50 border rounded-2xl px-4 py-2">
-          <Calendar size={18} className="text-teal-600" />
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="bg-transparent text-sm outline-none w-32"
-          />
-          <span className="text-gray-400">→</span>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="bg-transparent text-sm outline-none w-32"
-          />
-          <button className="ml-2 px-4 py-1 bg-teal-600 text-white text-sm rounded-xl hover:bg-teal-700 transition">
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Realtime dot */}
+        <div title="Temps réel actif" style={{ width: 7, height: 7, borderRadius: '50%', background: '#00c9a7', animation: 'pulse 2s infinite' }} />
+
+        {/* Date filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f1f5f9', border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '5px 11px' }}>
+          <Calendar size={14} style={{ color: '#00c9a7' }} />
+          <label style={{ fontSize: 10.5, color: '#94a3b8', whiteSpace: 'nowrap', fontWeight: 500 }}>Du</label>
+          <input type="date" value={from} onChange={e => setFrom(e.target.value)}
+            style={{ border: 'none', background: 'transparent', fontSize: 12, color: '#0f172a', fontFamily: 'inherit', width: 105, outline: 'none' }} />
+          <label style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 500 }}>Au</label>
+          <input type="date" value={to} onChange={e => setTo(e.target.value)}
+            style={{ border: 'none', background: 'transparent', fontSize: 12, color: '#0f172a', fontFamily: 'inherit', width: 105, outline: 'none' }} />
+          <button onClick={() => onFilter(from, to)}
+            style={{ background: '#00c9a7', color: '#fff', border: 'none', borderRadius: 7, padding: '4px 9px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
             Filtrer
           </button>
-        </div>
-
-        <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center text-teal-600">
-          <span className="text-xs font-bold">RT</span>
+          <button onClick={() => { setFrom(''); setTo(''); onClearFilter(); }}
+            style={{ background: 'transparent', color: '#94a3b8', border: '1.5px solid #e2e8f0', borderRadius: 7, padding: '4px 9px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            Tout
+          </button>
         </div>
       </div>
     </div>
